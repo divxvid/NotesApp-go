@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -14,7 +15,14 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "POST /signup")
+	var requestJson UserSignupRequest
+	json.NewDecoder(r.Body).Decode(&requestJson)
+
+	response := UserSignupResponse{
+		Message:  "User created successfully!",
+		Username: requestJson.Username,
+	}
+	WriteJsonResponse(w, http.StatusCreated, response)
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
