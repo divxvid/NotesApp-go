@@ -1,16 +1,49 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 const address string = "127.0.0.1:8000"
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	dbSvc, err := NewMongoDBService()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer dbSvc.Close()
+
+	names, err := dbSvc.GetCollectionNames()
+	if err != nil {
+		log.Fatal("Error in GetCollection Names: ", err)
+	}
+
+	for _, name := range names {
+		fmt.Println(name)
+	}
+
+	ups, err := dbSvc.GetAllUserPasses()
+	if err != nil {
+		log.Fatal("Error in GetAllUserPasses Names: ", err)
+	}
+
+	for _, up := range ups {
+		fmt.Println(up)
+	}
+}
+
+func tempFunc() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", RootHandler)
 	r.HandleFunc("/signup", SignupHandler).Methods("POST")
