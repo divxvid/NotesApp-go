@@ -8,7 +8,9 @@ import (
 )
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello from the golang server!")
+	WriteJsonResponse(w, http.StatusOK, GenericResponse{
+		Message: "Hello from the Golang server!",
+	})
 }
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
