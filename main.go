@@ -33,34 +33,34 @@ func main() {
 		fmt.Println(name)
 	}
 
-	ups, err := dbSvc.GetAllUserPasses()
+	notes, err := dbSvc.FetchAllNotes()
 	if err != nil {
-		log.Fatal("Error in GetAllUserPasses Names: ", err)
+		log.Fatal(err)
 	}
 
-	for _, up := range ups {
-		fmt.Println(up)
+	for _, note := range notes {
+		fmt.Println(note)
 	}
 
-	up := UserPasses{
-		Username: "GolangTest2",
-		Password: "hehehe",
+	note := Note{
+		Username: "div",
+		Title:    "Golang Testing",
+		Body:     "This is the body",
 	}
 
-	id, err := dbSvc.CreateUser(&up)
+	id, err := dbSvc.CreateNote(&note)
 	if err != nil {
-		log.Fatal("Error in Create User: ", err)
+		log.Fatal(err)
 	}
-	fmt.Println("Create succeeded with id: ", id)
 
-	ups, err = dbSvc.GetAllUserPasses()
+	fmt.Println("Created succefully with id : ", id)
+
+	n, err := dbSvc.FetchNoteById(id)
 	if err != nil {
-		log.Fatal("Error in GetAllUserPasses Names: ", err)
+		log.Fatal(err)
 	}
 
-	for _, up := range ups {
-		fmt.Println(up)
-	}
+	fmt.Println(n)
 }
 
 func tempFunc() {

@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type UserPasses struct {
+type UserPass struct {
 	Username string `bson:"username,omitempty"`
 	Password string `bson:"password,omitempty"`
 }
@@ -24,8 +24,11 @@ type Note struct {
 }
 
 type DBService interface {
-	FetchUserByUsername(string) (UserPasses, error)
-	CreateUser(*UserPasses) (*string, error)
+	FetchUserByUsername(string) (UserPass, error)
+	CreateUser(*UserPass) (string, error)
+	CreateNote(*Note) (string, error)
+	FetchAllNotes() ([]Note, error)
+	FetchNoteById(string) (*Note, error)
 }
 
 type MongoDBService struct {
@@ -34,14 +37,49 @@ type MongoDBService struct {
 	db     *mongo.Database
 }
 
-func (mongoSvc *MongoDBService) CreateUser(user *UserPasses) (*string, error) {
-	collection := mongoSvc.db.Collection("userpasses")
-	result, err := collection.InsertOne(*mongoSvc.ctx, user)
+func (mongoSvc *MongoDBService) FetchNoteById(id string) (*Note, error) {
+	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	insertedID := result.InsertedID.(primitive.ObjectID).String()
-	return &insertedID, nil
+
+	collection := mongoSvc.db.Collection("notes")
+	var note Note
+
+	query := bson.D{{"_id", objectId}}
+	collection.FindOne(*mongoSvc.ctx, query).Decode(&note)
+
+	return &note, nil
+}
+
+func (mongoSvc *MongoDBService) CreateNote(note *Note) (string, error) {
+	collection := mongoSvc.db.Collection("notes")
+
+	result, err := collection.InsertOne(*mongoSvc.ctx, note)
+	if err != nil {
+		return "", err
+	}
+	insertedID := result.InsertedID.(primitive.ObjectID).Hex()
+	return insertedID, nil
+}
+
+func (mongoSvc *MongoDBService) FetchUserByUsername(username string) (UserPass, error) {
+	collection := mongoSvc.db.Collection("userpasses")
+	var up UserPass
+
+	query := bson.D{{"username", username}}
+	collection.FindOne(*mongoSvc.ctx, query).Decode(&up)
+	return up, nil
+}
+
+func (mongoSvc *MongoDBService) CreateUser(user *UserPass) (string, error) {
+	collection := mongoSvc.db.Collection("userpasses")
+	result, err := collection.InsertOne(*mongoSvc.ctx, user)
+	if err != nil {
+		return "", err
+	}
+	insertedID := result.InsertedID.(primitive.ObjectID).Hex()
+	return insertedID, nil
 }
 
 func (mongoSvc *MongoDBService) Close() error {
@@ -69,12 +107,6 @@ func NewMongoDBService() (*MongoDBService, error) {
 		return nil, err
 	}
 
-	// databases, err := client.ListDatabaseNames(ctx, bson.M{})
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Println(databases)
-
 	db := client.Database("test")
 	return &MongoDBService{
 		ctx:    &ctx,
@@ -93,10 +125,10 @@ func (mongoSvc *MongoDBService) GetCollectionNames() ([]string, error) {
 	return collectionNames, nil
 }
 
-func (mongoSvc *MongoDBService) GetAllUserPasses() ([]UserPasses, error) {
+func (mongoSvc *MongoDBService) GetAllUserPasses() ([]UserPass, error) {
 	collection := mongoSvc.db.Collection("userpasses")
 
-	var up []UserPasses
+	var up []UserPass
 
 	cursor, err := collection.Find(*mongoSvc.ctx, bson.D{})
 	if err != nil {
@@ -109,4 +141,22 @@ func (mongoSvc *MongoDBService) GetAllUserPasses() ([]UserPasses, error) {
 	}
 
 	return up, nil
+}
+
+func (mongoSvc *MongoDBService) FetchAllNotes() ([]Note, error) {
+	collection := mongoSvc.db.Collection("notes")
+
+	var notes []Note
+
+	cursor, err := collection.Find(*mongoSvc.ctx, bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(*mongoSvc.ctx)
+
+	if err = cursor.All(*mongoSvc.ctx, &notes); err != nil {
+		return nil, err
+	}
+
+	return notes, nil
 }
