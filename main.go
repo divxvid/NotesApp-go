@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -17,53 +16,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
-	dbSvc, err := NewMongoDBService()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer dbSvc.Close()
-
-	names, err := dbSvc.GetCollectionNames()
-	if err != nil {
-		log.Fatal("Error in GetCollection Names: ", err)
-	}
-
-	for _, name := range names {
-		fmt.Println(name)
-	}
-
-	notes, err := dbSvc.FetchAllNotes()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, note := range notes {
-		fmt.Println(note)
-	}
-
-	note := Note{
-		Username: "div",
-		Title:    "Golang Testing",
-		Body:     "This is the body",
-	}
-
-	id, err := dbSvc.CreateNote(&note)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Created succefully with id : ", id)
-
-	n, err := dbSvc.FetchNoteById(id)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(n)
-}
-
-func tempFunc() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", RootHandler)
 	r.HandleFunc("/signup", SignupHandler).Methods("POST")

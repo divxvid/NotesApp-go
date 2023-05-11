@@ -29,12 +29,34 @@ type DBService interface {
 	CreateNote(*Note) (string, error)
 	FetchAllNotes() ([]Note, error)
 	FetchNoteById(string) (*Note, error)
+	DeleteNoteById(string) error
 }
 
 type MongoDBService struct {
 	ctx    *context.Context
 	client *mongo.Client
 	db     *mongo.Database
+}
+
+func (mongoSvc *MongoDBService) DeleteNoteById(id string) error {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	collection := mongoSvc.db.Collection("notes")
+	query := bson.D{{"_id", objectId}}
+
+	result, err := collection.DeleteOne(*mongoSvc.ctx, query)
+	if err != nil {
+		return err
+	}
+
+	if result.DeletedCount != 1 {
+		return fmt.Errorf("Id not found in the database for deletion")
+	}
+
+	return nil
 }
 
 func (mongoSvc *MongoDBService) FetchNoteById(id string) (*Note, error) {
