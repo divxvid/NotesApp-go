@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -24,13 +25,23 @@ type Note struct {
 
 type DBService interface {
 	FetchUserByUsername(string) (UserPasses, error)
-	CreateUser(*UserPasses) error
+	CreateUser(*UserPasses) (*string, error)
 }
 
 type MongoDBService struct {
 	ctx    *context.Context
 	client *mongo.Client
 	db     *mongo.Database
+}
+
+func (mongoSvc *MongoDBService) CreateUser(user *UserPasses) (*string, error) {
+	collection := mongoSvc.db.Collection("userpasses")
+	result, err := collection.InsertOne(*mongoSvc.ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	insertedID := result.InsertedID.(primitive.ObjectID).String()
+	return &insertedID, nil
 }
 
 func (mongoSvc *MongoDBService) Close() error {

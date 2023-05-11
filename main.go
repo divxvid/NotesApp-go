@@ -41,6 +41,26 @@ func main() {
 	for _, up := range ups {
 		fmt.Println(up)
 	}
+
+	up := UserPasses{
+		Username: "GolangTest2",
+		Password: "hehehe",
+	}
+
+	id, err := dbSvc.CreateUser(&up)
+	if err != nil {
+		log.Fatal("Error in Create User: ", err)
+	}
+	fmt.Println("Create succeeded with id: ", id)
+
+	ups, err = dbSvc.GetAllUserPasses()
+	if err != nil {
+		log.Fatal("Error in GetAllUserPasses Names: ", err)
+	}
+
+	for _, up := range ups {
+		fmt.Println(up)
+	}
 }
 
 func tempFunc() {
