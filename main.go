@@ -21,8 +21,10 @@ func main() {
 	r.HandleFunc("/signup", SignupHandler).Methods("POST")
 	r.HandleFunc("/login", LoginHandler).Methods("POST")
 	r.HandleFunc("/logout", LogoutHandler).Methods("GET")
-	r.HandleFunc("/notes", NotesHandler).Methods("GET", "POST")
-	r.HandleFunc("/notes/{id}", NotesWithIdHandler).Methods("GET", "DELETE")
+	r.HandleFunc("/notes", GetAllNotesHandler).Methods("GET")
+	r.HandleFunc("/notes", CreateNewNoteHandler).Methods("POST")
+	r.HandleFunc("/notes/{id}", GetNoteByIdHandler).Methods("GET")
+	r.HandleFunc("/notes/{id}", DeleteNoteByIdHandler).Methods("DELETE")
 
 	srv := &http.Server{
 		Handler:      r,
