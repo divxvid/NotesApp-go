@@ -11,6 +11,7 @@ import (
 
 const address string = "127.0.0.1:8000"
 
+// This is the main function
 func main() {
 	err := godotenv.Load()
 	if err != nil {
